@@ -12,8 +12,6 @@ as a page-by-page flipbook viewer.
 - xAPI: `experienced` per page view, `progressed` with completion %, `completed` on final page
 - Renderer engine is swappable behind `H5P.FlipBookRenderers.*`
 
-Target audience: modern browsers (evergreen Chrome, Firefox, Safari, Edge).
-
 ## Install
 
 1. Download the latest `H5P.FlipBook.h5p` from
