@@ -153,6 +153,10 @@ H5P.FlipBook = (function ($, EventDispatcher) {
 
     this.reflow = function () { self.scheduleRender(); };
     window.addEventListener('resize', this.reflow);
+    // Canonical H5P resize signal — fired by core on iframe-resizer ticks,
+    // fullscreen transitions, and parent-driven layout changes. render()
+    // no longer triggers 'resize' itself, so this does not loop.
+    this.on('resize', this.reflow);
     if (window.ResizeObserver) {
       this.resizeObserver = new ResizeObserver(this.reflow);
       this.resizeObserver.observe(this.stage);
@@ -192,6 +196,10 @@ H5P.FlipBook = (function ($, EventDispatcher) {
       self.numPages = info.numPages;
       self.updatePageCount();
       self.render();
+      // The H5P container may still be finishing its initial layout pass
+      // (iframe resizer, parent CSS settling). Retry once so the final
+      // stage size is used instead of the one captured mid-layout.
+      setTimeout(function () { self.render(); }, 250);
     }).catch(function (err) {
       console.error('H5P.FlipBook: failed to load PDF', err);
       self.showError(self.l10n.pdfLoadError);
