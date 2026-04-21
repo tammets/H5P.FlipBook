@@ -26,7 +26,7 @@ done
 rm -f "$OUTPUT"
 (
   cd "$STAGE"
-  zip -r -q "$OUTPUT" h5p.json content "$LIB_DIR_NAME" \
+  zip -r -D -q "$OUTPUT" h5p.json content "$LIB_DIR_NAME" \
     -x "*.DS_Store" "*/.DS_Store"
 )
 

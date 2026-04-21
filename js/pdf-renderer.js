@@ -10,11 +10,14 @@
     if (pdfjsPromise) {
       return pdfjsPromise;
     }
-    var moduleUrl = libraryPath + '/lib/pdf.min.mjs';
-    var workerUrl = libraryPath + '/lib/pdf.worker.min.mjs';
+    var moduleUrl = libraryPath + '/lib/pdf.min.js';
+    var workerUrl = libraryPath + '/lib/pdf.worker.min.js';
     pdfjsPromise = import(/* webpackIgnore: true */ moduleUrl).then(function (mod) {
       var pdfjsLib = mod.default || mod;
-      pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+      // PDF.js normally infers module-worker mode from the .mjs extension.
+      // We ship .js (H5P whitelist rejects .mjs), so construct the worker
+      // explicitly with { type: 'module' } and hand it over via workerPort.
+      pdfjsLib.GlobalWorkerOptions.workerPort = new Worker(workerUrl, { type: 'module' });
       return pdfjsLib;
     });
     return pdfjsPromise;
