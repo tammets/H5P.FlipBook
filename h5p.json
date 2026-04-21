@@ -1,0 +1,13 @@
+{
+  "title": "FlipBook",
+  "language": "en",
+  "mainLibrary": "H5P.FlipBook",
+  "embedTypes": ["div"],
+  "preloadedDependencies": [
+    {
+      "machineName": "H5P.FlipBook",
+      "majorVersion": 1,
+      "minorVersion": 0
+    }
+  ]
+}

@@ -14,21 +14,53 @@ as a page-by-page flipbook viewer.
 
 Target audience: modern browsers (evergreen Chrome, Firefox, Safari, Edge).
 
-## Structure
+## Install
 
+1. Download the latest `H5P.FlipBook.h5p` from
+   [GitHub Releases](https://github.com/tammets/H5P.FlipBook/releases).
+2. Upload it to your H5P-enabled platform (Moodle, Drupal, WordPress plugin,
+   h5p.org).
+3. Create a new activity, pick "FlipBook", and upload a PDF.
+
+## Development
+
+Prerequisite: [h5p-cli](https://h5p.org/h5p-cli-guide).
+
+```bash
+npm install -g h5p-cli
 ```
-H5P.FlipBook-1.0/
-├── library.json
-├── semantics.json
-├── icon.svg
-├── js/
-│   ├── pdf-renderer.js     # PDF.js wrapper (swappable renderer interface)
-│   └── flipbook.js         # main class, extends H5P.EventDispatcher
-├── css/
-│   └── flipbook.css
-└── lib/
-    ├── pdf.min.mjs         # PDF.js (modern ESM, pinned)
-    └── pdf.worker.min.mjs  # PDF.js worker
+
+Clone this repo into the `libraries/` folder of an h5p-cli workspace as
+`H5P.FlipBook-1.0`, then from the workspace root:
+
+```bash
+h5p server
+```
+
+Open the dev server URL, create a FlipBook content entry, upload a PDF. JS
+and CSS changes are picked up on refresh.
+
+## Building a `.h5p` package
+
+```bash
+./build.sh
+```
+
+Produces `H5P.FlipBook.h5p` in the repo root. Works on macOS and Linux (uses
+`zip`). The resulting file can be uploaded to any H5P-compatible host.
+
+## Releases
+
+Tagging a commit with `vX.Y.Z` triggers the GitHub Actions workflow at
+`.github/workflows/release.yml`, which builds the `.h5p` package and
+attaches it to a new GitHub Release.
+
+Cut a new release:
+
+```bash
+# bump patchVersion in library.json first, commit, then:
+git tag v1.0.1
+git push origin v1.0.1
 ```
 
 ## PDF.js
@@ -39,39 +71,11 @@ they are *not* listed in `preloadedJs`.
 
 ### Upgrading PDF.js
 
-1. Download the matching `pdf.min.mjs` and `pdf.worker.min.mjs` from:
+1. Download the matching `pdf.min.mjs` and `pdf.worker.min.mjs` from
    `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/<VERSION>/pdf.min.mjs`
 2. Replace both files in `lib/`.
 3. Update the version number in this README and bump `patchVersion` in
    `library.json`.
-
-## Building a `.h5p` package
-
-Install the H5P CLI once:
-
-```bash
-npm install -g h5p-cli
-```
-
-From the parent `libraries/` directory:
-
-```bash
-h5p pack H5P.FlipBook H5P.FlipBook.h5p
-```
-
-The resulting `H5P.FlipBook.h5p` is uploadable to any H5P-compatible host
-(Moodle, Drupal, WordPress plugin, lumi.education, h5p.org).
-
-## Local testing
-
-The fastest path is [Lumi](https://lumi.education/):
-
-1. Install Lumi Desktop.
-2. Drag `H5P.FlipBook.h5p` into the app, or create a new content with
-   content type "FlipBook" and upload a PDF.
-
-Alternatively, use `h5p-cli server` to serve content types locally, or
-point an H5P-enabled Moodle/Drupal instance at the packaged file.
 
 ## Swappable renderers
 
@@ -91,12 +95,10 @@ Register it under `H5P.FlipBookRenderers` and select it in `flipbook.js`.
 ## Known limitations
 
 - **Text selection and PDF text layer are not rendered.** Pages are
-  rasterized to a canvas. If text selection/search is needed later, add a
-  text layer above the canvas using PDF.js `page.getTextContent()`.
+  rasterized to a canvas. Add a text layer via PDF.js
+  `page.getTextContent()` if selection/search is needed later.
 - **Large PDFs** are re-rendered on each page turn; no pages are cached.
-  A simple in-memory cache could be added if flipping feels slow.
-- **Passwords and encrypted PDFs are not supported** — the content type
-  assumes an open, standard PDF.
+- **Encrypted/password-protected PDFs are not supported.**
 - **Print, download, and annotation** are intentionally not exposed.
 - **Accessibility**: ARIA carousel roles are set and focus is moved on
   page change, but screen readers will not read PDF content. Treat this
