@@ -65,6 +65,7 @@ H5P.FlipBook = (function ($, EventDispatcher) {
     stage.setAttribute('role', 'region');
     stage.setAttribute('aria-roledescription', 'carousel');
     stage.setAttribute('aria-label', this.titleEl.textContent || 'Flipbook');
+    this.stage = stage;
 
     this.pageWrap = document.createElement('div');
     this.pageWrap.className = 'h5p-pdf-flipbook__page';
@@ -150,9 +151,14 @@ H5P.FlipBook = (function ($, EventDispatcher) {
       this.fullscreenBtn.addEventListener('click', function () { self.toggleFullscreen(); });
     }
 
-    this.resizeHandler = function () { self.scheduleRender(); };
-    window.addEventListener('resize', this.resizeHandler);
-    this.on('resize', this.resizeHandler);
+    this.reflow = function () { self.scheduleRender(); };
+    window.addEventListener('resize', this.reflow);
+    if (window.ResizeObserver) {
+      this.resizeObserver = new ResizeObserver(this.reflow);
+      this.resizeObserver.observe(this.stage);
+    }
+    document.addEventListener('fullscreenchange', this.reflow);
+    document.addEventListener('webkitfullscreenchange', this.reflow);
   };
 
   FlipBook.prototype.bindSwipe = function () {
@@ -217,10 +223,10 @@ H5P.FlipBook = (function ($, EventDispatcher) {
     if (!this.renderer || !this.numPages) { return; }
     var self = this;
     var seq = ++this.renderSeq;
-    var width = this.pageWrap.clientWidth || this.container.clientWidth || 800;
+    var box = this.computeStageBox();
 
     this.loadingEl.style.display = '';
-    this.renderer.renderPage(this.currentPage, this.canvas, width).then(function () {
+    this.renderer.renderPage(this.currentPage, this.canvas, box).then(function () {
       if (seq !== self.renderSeq) { return; }
       self.loadingEl.style.display = 'none';
       self.updateProgress();
@@ -228,12 +234,22 @@ H5P.FlipBook = (function ($, EventDispatcher) {
       self.pageWrap.setAttribute('aria-label', 'Page ' + self.currentPage + ' of ' + self.numPages);
       self.pageWrap.focus({ preventScroll: true });
       self.fireXAPIExperienced();
-      self.trigger('resize');
     }).catch(function (err) {
       if (seq !== self.renderSeq) { return; }
       console.error('H5P.FlipBook: render failed', err);
       self.showError(self.l10n.pdfLoadError);
     });
+  };
+
+  FlipBook.prototype.computeStageBox = function () {
+    var stage = this.stage;
+    if (!stage) { return { width: 800, height: 600 }; }
+    var cs = window.getComputedStyle(stage);
+    var padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    var padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+    var w = Math.max(100, stage.clientWidth - padX);
+    var h = Math.max(100, stage.clientHeight - padY);
+    return { width: w, height: h };
   };
 
   FlipBook.prototype.updatePageCount = function () {

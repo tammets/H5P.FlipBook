@@ -37,13 +37,16 @@
     });
   };
 
-  PdfJsRenderer.prototype.renderPage = function (pageNumber, canvas, targetWidth) {
+  PdfJsRenderer.prototype.renderPage = function (pageNumber, canvas, box) {
     if (!this.document) {
       return Promise.reject(new Error('Document not loaded'));
     }
     return this.document.getPage(pageNumber).then(function (page) {
       var baseViewport = page.getViewport({ scale: 1 });
-      var scale = targetWidth / baseViewport.width;
+      var scale = Math.min(
+        box.width / baseViewport.width,
+        box.height / baseViewport.height
+      );
       var dpr = window.devicePixelRatio || 1;
       var viewport = page.getViewport({ scale: scale * dpr });
 
