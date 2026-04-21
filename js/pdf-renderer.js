@@ -1,0 +1,74 @@
+(function () {
+  'use strict';
+
+  var H5P = window.H5P = window.H5P || {};
+  H5P.FlipBookRenderers = H5P.FlipBookRenderers || {};
+
+  var pdfjsPromise = null;
+
+  function loadPdfJs(libraryPath) {
+    if (pdfjsPromise) {
+      return pdfjsPromise;
+    }
+    var moduleUrl = libraryPath + '/lib/pdf.min.mjs';
+    var workerUrl = libraryPath + '/lib/pdf.worker.min.mjs';
+    pdfjsPromise = import(/* webpackIgnore: true */ moduleUrl).then(function (mod) {
+      var pdfjsLib = mod.default || mod;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+      return pdfjsLib;
+    });
+    return pdfjsPromise;
+  }
+
+  function PdfJsRenderer(libraryPath) {
+    this.libraryPath = libraryPath;
+    this.pdfjsLib = null;
+    this.document = null;
+  }
+
+  PdfJsRenderer.prototype.loadDocument = function (source) {
+    var self = this;
+    return loadPdfJs(this.libraryPath).then(function (pdfjsLib) {
+      self.pdfjsLib = pdfjsLib;
+      return pdfjsLib.getDocument(source).promise;
+    }).then(function (doc) {
+      self.document = doc;
+      return { numPages: doc.numPages };
+    });
+  };
+
+  PdfJsRenderer.prototype.renderPage = function (pageNumber, canvas, targetWidth) {
+    if (!this.document) {
+      return Promise.reject(new Error('Document not loaded'));
+    }
+    return this.document.getPage(pageNumber).then(function (page) {
+      var baseViewport = page.getViewport({ scale: 1 });
+      var scale = targetWidth / baseViewport.width;
+      var dpr = window.devicePixelRatio || 1;
+      var viewport = page.getViewport({ scale: scale * dpr });
+
+      canvas.width = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+      canvas.style.width = Math.floor(viewport.width / dpr) + 'px';
+      canvas.style.height = Math.floor(viewport.height / dpr) + 'px';
+
+      var ctx = canvas.getContext('2d');
+      var renderTask = page.render({ canvasContext: ctx, viewport: viewport });
+      return renderTask.promise.then(function () {
+        return {
+          width: viewport.width / dpr,
+          height: viewport.height / dpr
+        };
+      });
+    });
+  };
+
+  PdfJsRenderer.prototype.destroy = function () {
+    if (this.document) {
+      this.document.destroy();
+      this.document = null;
+    }
+  };
+
+  H5P.FlipBookRenderers.PdfJs = PdfJsRenderer;
+})();

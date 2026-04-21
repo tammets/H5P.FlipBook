@@ -1,0 +1,6 @@
+node_modules/
+*.h5p
+.DS_Store
+temp/
+uploads/
+content/

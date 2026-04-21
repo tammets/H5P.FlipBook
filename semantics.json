@@ -1,0 +1,50 @@
+[
+  {
+    "name": "pdfFile",
+    "type": "file",
+    "label": "PDF file",
+    "description": "Upload the PDF to display as a flipbook.",
+    "importance": "high"
+  },
+  {
+    "name": "title",
+    "type": "text",
+    "label": "Title",
+    "description": "Shown in the header bar. Leave blank to hide.",
+    "optional": true
+  },
+  {
+    "name": "behaviour",
+    "type": "group",
+    "label": "Behaviour",
+    "fields": [
+      {
+        "name": "enableFullscreen",
+        "type": "boolean",
+        "label": "Show fullscreen button",
+        "default": true
+      },
+      {
+        "name": "enableSwipe",
+        "type": "boolean",
+        "label": "Enable swipe gestures on touch devices",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "l10n",
+    "type": "group",
+    "label": "Localization",
+    "common": true,
+    "fields": [
+      { "name": "prevPage",         "type": "text", "default": "Previous page" },
+      { "name": "nextPage",         "type": "text", "default": "Next page" },
+      { "name": "toggleFullscreen", "type": "text", "default": "Toggle fullscreen" },
+      { "name": "pageCount",        "type": "text", "default": "@count pages" },
+      { "name": "pageProgress",     "type": "text", "default": "@current / @total" },
+      { "name": "loading",          "type": "text", "default": "Loading…" },
+      { "name": "pdfLoadError",     "type": "text", "default": "Could not load the PDF." }
+    ]
+  }
+]

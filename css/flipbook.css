@@ -1,0 +1,219 @@
+.h5p-pdf-flipbook {
+  --fb-header-bg: #5f5f5f;
+  --fb-header-fg: #ffffff;
+  --fb-stage-bg: #ffffff;
+  --fb-nav-bg: #2c2c2c;
+  --fb-nav-fg: #ffffff;
+  --fb-nav-size: 56px;
+  --fb-progress-bg: #d0d0d0;
+  --fb-progress-fg: #2c2c2c;
+
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--fb-stage-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+.h5p-pdf-flipbook__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--fb-header-bg);
+  color: var(--fb-header-fg);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.h5p-pdf-flipbook__title {
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 12px;
+}
+
+.h5p-pdf-flipbook__page-count {
+  white-space: nowrap;
+  font-weight: 500;
+  opacity: 0.95;
+}
+
+.h5p-pdf-flipbook__stage {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 16px;
+  background: var(--fb-stage-bg);
+}
+
+.h5p-pdf-flipbook__page {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+}
+
+.h5p-pdf-flipbook__page:focus-visible {
+  box-shadow: 0 0 0 3px rgba(58, 192, 181, 0.5);
+}
+
+.h5p-pdf-flipbook__canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.h5p-pdf-flipbook__loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  color: #444;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.h5p-pdf-flipbook__loading--error {
+  color: #b00020;
+  background: rgba(255, 230, 230, 0.9);
+}
+
+.h5p-pdf-flipbook__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--fb-nav-size);
+  height: var(--fb-nav-size);
+  border-radius: 50%;
+  border: none;
+  background: var(--fb-nav-bg);
+  color: var(--fb-nav-fg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  line-height: 1;
+  padding: 0;
+  z-index: 2;
+  transition: background 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+
+.h5p-pdf-flipbook__nav:hover:not(:disabled) {
+  background: #000;
+  transform: translateY(-50%) scale(1.04);
+}
+
+.h5p-pdf-flipbook__nav:focus-visible {
+  outline: 3px solid #3ac0b5;
+  outline-offset: 2px;
+}
+
+.h5p-pdf-flipbook__nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.h5p-pdf-flipbook__nav--prev { left: 16px; }
+.h5p-pdf-flipbook__nav--next { right: 16px; }
+
+.h5p-pdf-flipbook__footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  background: var(--fb-header-bg);
+  color: var(--fb-header-fg);
+  flex-shrink: 0;
+}
+
+.h5p-pdf-flipbook__progress {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.h5p-pdf-flipbook__progress-label {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  min-width: 48px;
+}
+
+.h5p-pdf-flipbook__progress-bar {
+  flex: 1 1 auto;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--fb-progress-bg);
+  overflow: hidden;
+  position: relative;
+}
+
+.h5p-pdf-flipbook__progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--fb-progress-fg);
+  border-radius: 3px;
+  transition: width 0.25s ease;
+}
+
+.h5p-pdf-flipbook__fullscreen {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--fb-header-fg);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.h5p-pdf-flipbook__fullscreen:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.h5p-pdf-flipbook__fullscreen:focus-visible {
+  outline: 2px solid #3ac0b5;
+  outline-offset: 2px;
+}
+
+.h5p-fullscreen .h5p-pdf-flipbook,
+.h5p-semi-fullscreen .h5p-pdf-flipbook {
+  height: 100vh;
+}
+
+@media (max-width: 600px) {
+  .h5p-pdf-flipbook {
+    --fb-nav-size: 44px;
+  }
+  .h5p-pdf-flipbook__header { font-size: 13px; padding: 10px 14px; }
+  .h5p-pdf-flipbook__footer { padding: 8px 14px; }
+  .h5p-pdf-flipbook__nav--prev { left: 8px; }
+  .h5p-pdf-flipbook__nav--next { right: 8px; }
+  .h5p-pdf-flipbook__nav { font-size: 22px; }
+}

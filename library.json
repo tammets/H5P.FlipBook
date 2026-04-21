@@ -1,0 +1,20 @@
+{
+  "title": "FlipBook",
+  "description": "Upload a PDF and present it as a page-by-page flipbook.",
+  "majorVersion": 1,
+  "minorVersion": 0,
+  "patchVersion": 0,
+  "runnable": 1,
+  "author": "Priit Tammets",
+  "license": "MIT",
+  "icon": "icon.svg",
+  "machineName": "H5P.FlipBook",
+  "contentType": "Interactive",
+  "preloadedJs": [
+    { "path": "js/pdf-renderer.js" },
+    { "path": "js/flipbook.js" }
+  ],
+  "preloadedCss": [
+    { "path": "css/flipbook.css" }
+  ]
+}
