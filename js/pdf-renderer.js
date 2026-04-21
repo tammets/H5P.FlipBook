@@ -36,7 +36,15 @@
       return pdfjsLib.getDocument(source).promise;
     }).then(function (doc) {
       self.document = doc;
-      return { numPages: doc.numPages };
+      return doc.getPage(1).then(function (page) {
+        var viewport = page.getViewport({ scale: 1 });
+        return {
+          numPages: doc.numPages,
+          pageWidth: viewport.width,
+          pageHeight: viewport.height,
+          aspectRatio: viewport.height / viewport.width
+        };
+      });
     });
   };
 

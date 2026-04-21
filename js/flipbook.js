@@ -29,9 +29,11 @@ H5P.FlipBook = (function ($, EventDispatcher) {
     this.currentPage = 1;
     this.numPages = 0;
     this.maxPageReached = 1;
+    this.pageAspectRatio = null;
     this.renderSeq = 0;
     this.renderer = null;
     this.renderDebounceTimer = null;
+    this.layoutStabilizerTimer = null;
   }
 
   FlipBook.prototype = Object.create(EventDispatcher.prototype);
@@ -52,6 +54,7 @@ H5P.FlipBook = (function ($, EventDispatcher) {
 
     var header = document.createElement('div');
     header.className = 'h5p-pdf-flipbook__header';
+    this.header = header;
     this.titleEl = document.createElement('div');
     this.titleEl.className = 'h5p-pdf-flipbook__title';
     this.titleEl.textContent = (this.params.title || this.extras.metadata && this.extras.metadata.title) || '';
@@ -91,6 +94,7 @@ H5P.FlipBook = (function ($, EventDispatcher) {
 
     var footer = document.createElement('div');
     footer.className = 'h5p-pdf-flipbook__footer';
+    this.footer = footer;
     this.progressEl = document.createElement('div');
     this.progressEl.className = 'h5p-pdf-flipbook__progress';
     this.progressLabel = document.createElement('span');
@@ -194,12 +198,12 @@ H5P.FlipBook = (function ($, EventDispatcher) {
 
     this.renderer.loadDocument(url).then(function (info) {
       self.numPages = info.numPages;
+      self.pageAspectRatio = info.aspectRatio || null;
       self.updatePageCount();
+      self.updatePreferredLayout();
+      self.trigger('resize');
       self.render();
-      // The H5P container may still be finishing its initial layout pass
-      // (iframe resizer, parent CSS settling). Retry once so the final
-      // stage size is used instead of the one captured mid-layout.
-      setTimeout(function () { self.render(); }, 250);
+      self.stabilizeInitialLayout();
     }).catch(function (err) {
       console.error('H5P.FlipBook: failed to load PDF', err);
       self.showError(self.l10n.pdfLoadError);
@@ -224,7 +228,10 @@ H5P.FlipBook = (function ($, EventDispatcher) {
   FlipBook.prototype.scheduleRender = function () {
     var self = this;
     if (this.renderDebounceTimer) { clearTimeout(this.renderDebounceTimer); }
-    this.renderDebounceTimer = setTimeout(function () { self.render(); }, 120);
+    this.renderDebounceTimer = setTimeout(function () {
+      self.updatePreferredLayout();
+      self.render();
+    }, 120);
   };
 
   FlipBook.prototype.render = function () {
@@ -258,6 +265,53 @@ H5P.FlipBook = (function ($, EventDispatcher) {
     var w = Math.max(100, stage.clientWidth - padX);
     var h = Math.max(100, stage.clientHeight - padY);
     return { width: w, height: h };
+  };
+
+  FlipBook.prototype.updatePreferredLayout = function () {
+    if (!this.stage || !this.pageAspectRatio || !this.container) { return; }
+
+    var stage = this.stage;
+    var cs = window.getComputedStyle(stage);
+    var padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    var padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+    var availableWidth = Math.max(100, this.container.clientWidth - padX);
+    var preferredStageHeight = Math.min(
+      Math.max(480, Math.round(availableWidth * this.pageAspectRatio + padY)),
+      1400
+    );
+    var minHeight = preferredStageHeight + 'px';
+
+    if (stage.style.minHeight !== minHeight) {
+      stage.style.minHeight = minHeight;
+    }
+  };
+
+  FlipBook.prototype.stabilizeInitialLayout = function () {
+    var self = this;
+    var attempts = 0;
+    var previousBox = this.computeStageBox();
+
+    if (this.layoutStabilizerTimer) {
+      clearInterval(this.layoutStabilizerTimer);
+    }
+
+    this.layoutStabilizerTimer = setInterval(function () {
+      attempts += 1;
+      self.updatePreferredLayout();
+      var nextBox = self.computeStageBox();
+      var widthDelta = Math.abs(nextBox.width - previousBox.width);
+      var heightDelta = Math.abs(nextBox.height - previousBox.height);
+
+      if (widthDelta > 2 || heightDelta > 2) {
+        previousBox = nextBox;
+        self.trigger('resize');
+      }
+
+      if (attempts >= 6) {
+        clearInterval(self.layoutStabilizerTimer);
+        self.layoutStabilizerTimer = null;
+      }
+    }, 250);
   };
 
   FlipBook.prototype.updatePageCount = function () {

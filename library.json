@@ -3,7 +3,7 @@
   "description": "Upload a PDF and present it as a page-by-page flipbook.",
   "majorVersion": 1,
   "minorVersion": 0,
-  "patchVersion": 3,
+  "patchVersion": 4,
   "runnable": 1,
   "author": "Priit Tammets",
   "license": "MIT",
