@@ -27,6 +27,9 @@
     this.libraryPath = libraryPath;
     this.pdfjsLib = null;
     this.document = null;
+    this.renderTask = null;
+    this.renderToken = 0;
+    this.pendingJob = Promise.resolve();
   }
 
   PdfJsRenderer.prototype.loadDocument = function (source) {
@@ -52,7 +55,24 @@
     if (!this.document) {
       return Promise.reject(new Error('Document not loaded'));
     }
-    return this.document.getPage(pageNumber).then(function (page) {
+    var self = this;
+    var token = ++this.renderToken;
+
+    // PDF.js refuses to start a render on a canvas that another render task
+    // still holds, and resizing the canvas mid-render corrupts it. Cancel the
+    // in-flight task and wait for its job to settle before touching the canvas.
+    if (this.renderTask) {
+      this.renderTask.cancel();
+    }
+    var job = this.pendingJob.catch(function () {}).then(function () {
+      if (token !== self.renderToken || !self.document) {
+        throw new Error('Render superseded');
+      }
+      return self.document.getPage(pageNumber);
+    }).then(function (page) {
+      if (token !== self.renderToken) {
+        throw new Error('Render superseded');
+      }
       var baseViewport = page.getViewport({ scale: 1 });
       var scale = Math.min(
         box.width / baseViewport.width,
@@ -68,16 +88,28 @@
 
       var ctx = canvas.getContext('2d');
       var renderTask = page.render({ canvasContext: ctx, viewport: viewport });
+      self.renderTask = renderTask;
       return renderTask.promise.then(function () {
         return {
           width: viewport.width / dpr,
           height: viewport.height / dpr
         };
+      }).finally(function () {
+        if (self.renderTask === renderTask) {
+          self.renderTask = null;
+        }
       });
     });
+    this.pendingJob = job;
+    return job;
   };
 
   PdfJsRenderer.prototype.destroy = function () {
+    this.renderToken++;
+    if (this.renderTask) {
+      this.renderTask.cancel();
+      this.renderTask = null;
+    }
     if (this.document) {
       this.document.destroy();
       this.document = null;
